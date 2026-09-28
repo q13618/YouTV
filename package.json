@@ -1,0 +1,14 @@
+{
+  "name": "youtv-monitor",
+  "version": "0.1.0",
+  "description": "HLS 直播流监控台：批量监测直播源状态，点击即可观看",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

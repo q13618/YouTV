@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouTV 直播监控台</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">📺 YouTV <span>直播监控台</span></div>
+    <div class="stats" id="stats"></div>
+    <div class="actions">
+      <button id="btnImport" class="primary">导入频道</button>
+      <button id="btnCheckAll" title="立即检测所有频道">立即检测</button>
+      <button id="btnSettings" title="设置">⚙️</button>
+    </div>
+  </header>
+
+  <section class="toolbar">
+    <input id="search" type="search" placeholder="搜索频道名称 / 地址 / 分组…">
+    <select id="filterGroup"><option value="">全部分组</option></select>
+    <div class="seg" id="filterStatus">
+      <button data-status="" class="active">全部</button>
+      <button data-status="online">在线</button>
+      <button data-status="stalled">卡住</button>
+      <button data-status="offline">离线</button>
+    </div>
+    <div class="seg" id="viewMode">
+      <button data-view="grid" class="active" title="卡片视图">▦ 卡片</button>
+      <button data-view="list" title="列表视图">☰ 列表</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="togglePreview"> 实时预览画面</label>
+  </section>
+
+  <div id="proxyNotice" class="notice hidden"></div>
+
+  <main id="grid" class="grid"></main>
+  <div id="empty" class="empty hidden">
+    <h2>还没有频道</h2>
+    <p>点击右上角 <b>导入频道</b>，可以上传 zip / m3u / m3u8 / txt / csv / json 文件，或直接粘贴直播地址。</p>
+    <button id="btnLoadSample">加载示例频道</button>
+  </div>
+
+  <!-- 播放器弹窗 -->
+  <dialog id="playerDialog" class="player-dialog">
+    <div class="player-head">
+      <div>
+        <h3 id="playerTitle"></h3>
+        <div id="playerUrl" class="mono small"></div>
+      </div>
+      <div class="player-actions">
+        <button id="btnPrev" title="上一个 (←)">◀</button>
+        <button id="btnNext" title="下一个 (→)">▶</button>
+        <button id="btnCopy" title="复制地址">复制地址</button>
+        <button id="btnClose" title="关闭 (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="player-body">
+      <video id="player" controls autoplay playsinline></video>
+      <aside class="player-info">
+        <label>清晰度 <select id="levelSelect"></select></label>
+        <dl id="playerStats"></dl>
+        <div id="playerError" class="error hidden"></div>
+      </aside>
+    </div>
+  </dialog>
+
+  <!-- 导入弹窗 -->
+  <dialog id="importDialog">
+    <form method="dialog" class="form">
+      <h3>导入频道</h3>
+      <div id="dropZone" class="drop">
+        <p>把文件拖到这里，或 <label class="link">选择文件<input id="fileInput" type="file" multiple accept=".zip,.m3u,.m3u8,.txt,.csv,.json" hidden></label></p>
+        <p class="small muted">支持 zip 压缩包（会自动读取包内所有列表文件）、m3u/m3u8、txt、csv、json</p>
+      </div>
+      <p class="small muted">或粘贴内容（每行一个地址，可写成 “频道名,地址”，也可直接粘贴 M3U）：</p>
+      <textarea id="pasteInput" rows="8" placeholder="CCTV-1,https://example.com/live/cctv1/index.m3u8&#10;https://example.com/live/news.m3u8"></textarea>
+      <label class="row"><input type="radio" name="importMode" value="merge" checked> 追加到现有列表</label>
+      <label class="row"><input type="radio" name="importMode" value="replace"> 替换现有列表</label>
+      <div id="importResult" class="small"></div>
+      <div class="form-actions">
+        <button value="cancel">取消</button>
+        <button id="btnDoImport" value="ok" class="primary">导入</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 设置弹窗 -->
+  <dialog id="settingsDialog">
+    <form method="dialog" class="form">
+      <h3>设置</h3>
+      <label class="row">自动检测间隔（秒）<input id="setInterval" type="number" min="10" step="5"></label>
+      <label class="row">同时检测数量<input id="setConcurrency" type="number" min="1" max="20"></label>
+      <label class="row">最多同时预览画面数<input id="setMaxPreviews" type="number" min="1" max="36"></label>
+      <label class="row"><input id="setUseProxy" type="checkbox"> 通过本地代理访问直播源（解决跨域）</label>
+      <label class="row"><input id="setAlertSound" type="checkbox"> 频道掉线时提示音</label>
+      <div class="form-actions spread">
+        <span>
+          <button id="btnExport" type="button">导出列表 (M3U)</button>
+          <button id="btnClearAll" type="button" class="danger">清空频道</button>
+        </span>
+        <span>
+          <button value="cancel">取消</button>
+          <button id="btnSaveSettings" value="ok" class="primary">保存</button>
+        </span>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
